@@ -1,6 +1,5 @@
 package com.github.alpha.aes.cbc.pkcs;
 
-import java.io.UnsupportedEncodingException;
 import java.security.Security;
 import java.util.Base64;
 
@@ -91,7 +90,7 @@ public class AESUtils {
 	    //密钥
 		SecretKey k=new SecretKeySpec(revert(key),"AES");
 		//Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-	    Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding", new BouncyCastleProvider());
+	    Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding"/*, new BouncyCastleProvider()*/);
 	    //初始化，设置为加密模式
 	    cipher.init(Cipher.ENCRYPT_MODE, k,new IvParameterSpec(revert(key)));
 	    //执行操作
@@ -100,7 +99,7 @@ public class AESUtils {
 	
 	public static String encryptWithBase64(String content, String key, String iv) throws Exception {
 		String base64Str = Base64.getEncoder().encodeToString(content.getBytes("UTF-8"));
-		return new String(encrypt(base64Str.getBytes("UTF-8"), key, iv));
+		return toHex(encrypt(base64Str.getBytes("UTF-8"), key, iv));
 	}
 
 
@@ -109,8 +108,8 @@ public class AESUtils {
 	 * @param data 待解密数据
 	 * @return byte[] 解密后的数据
 	 * */
-	public static byte[] decrypt(byte[] data) throws Exception{
 	    //密钥
+	public static byte[] decrypt(byte[] data) throws Exception{
 	    SecretKey k=new SecretKeySpec(revert(keyStr),"AES");
 	    
 	    Cipher cipher=Cipher.getInstance("AES/CBC/PKCS7Padding", new BouncyCastleProvider());
@@ -131,7 +130,7 @@ public class AESUtils {
 	    //密钥
 	    SecretKey k=new SecretKeySpec(revert(key),"AES");
 	    
-	    Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding", new BouncyCastleProvider());
+	    Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding"/*, new BouncyCastleProvider()*/);
 	    //初始化，设置为解密模式
 	    cipher.init(Cipher.DECRYPT_MODE, k,new IvParameterSpec(revert(iv)));
 	    //执行操作
@@ -139,14 +138,16 @@ public class AESUtils {
 	}
 	
 	public static String decryptWithBase64(String content, String key, String iv) throws Exception {
-		String decryptStr = new String(decrypt(content.getBytes("UTF-8"), key, iv));
+		String decryptStr = new String(decrypt(revert(content), key, iv));
 		return new String(Base64.getDecoder().decode(decryptStr.getBytes("UTF-8")));
 	}
 	
 	public static void main(String[] args) throws Exception {
 		String context = "hello world";
 		System.out.println("明文：" + context);
-		System.out.println(toHex(encrypt(context.getBytes())));
+		String encryptText = toHex(encrypt(context.getBytes("UTF-8")));
+		System.out.println(encryptText);
+		System.out.println(new String(decrypt(revert(encryptText))));
 		//key sha256迭代N次，取前32位
 		//iv md5值
 		//源数据->BASE64->加密
